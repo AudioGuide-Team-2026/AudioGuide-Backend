@@ -1,0 +1,14 @@
+## .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+.vs/
+
+## Local configuration
+appsettings.Local.json
+.env
+
+## IDE / OS
+.idea/
+.DS_Store
