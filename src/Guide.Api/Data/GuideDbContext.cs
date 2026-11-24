@@ -14,6 +14,7 @@ public sealed class GuideDbContext(DbContextOptions<GuideDbContext> options) : D
             entity.ToTable("places");
             entity.HasKey(place => place.Id);
             entity.Property(place => place.Name).HasMaxLength(200).IsRequired();
+            entity.Property(place => place.Address).HasMaxLength(500).IsRequired();
             entity.Property(place => place.Description).HasMaxLength(5000);
             entity.Property(place => place.Latitude).HasPrecision(9, 6);
             entity.Property(place => place.Longitude).HasPrecision(9, 6);

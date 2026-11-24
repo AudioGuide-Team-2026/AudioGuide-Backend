@@ -1,3 +1,4 @@
+using Guide.Api.Contracts;
 using Guide.Api.Data;
 using Guide.Api.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,27 +11,27 @@ namespace Guide.Api.Controllers;
 public sealed class PlacesController(GuideDbContext db) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<Place>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<PlaceResponse>>> GetAll(CancellationToken cancellationToken)
     {
         var places = await db.Places
             .AsNoTracking()
             .OrderBy(place => place.Name)
             .ToListAsync(cancellationToken);
 
-        return Ok(places);
+        return Ok(places.Select(PlaceResponse.FromPlace).ToArray());
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Place>> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<PlaceResponse>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var place = await db.Places.AsNoTracking()
             .FirstOrDefaultAsync(place => place.Id == id, cancellationToken);
 
-        return place is null ? NotFound() : Ok(place);
+        return place is null ? NotFound() : Ok(PlaceResponse.FromPlace(place));
     }
 
     [HttpPost]
-    public async Task<ActionResult<Place>> Create(
+    public async Task<ActionResult<PlaceResponse>> Create(
         Place place,
         CancellationToken cancellationToken)
     {
@@ -39,11 +40,11 @@ public sealed class PlacesController(GuideDbContext db) : ControllerBase
         db.Places.Add(place);
         await db.SaveChangesAsync(cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = place.Id }, place);
+        return CreatedAtAction(nameof(GetById), new { id = place.Id }, PlaceResponse.FromPlace(place));
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Place>> Update(
+    public async Task<ActionResult<PlaceResponse>> Update(
         Guid id,
         Place updatedPlace,
         CancellationToken cancellationToken)
@@ -56,12 +57,13 @@ public sealed class PlacesController(GuideDbContext db) : ControllerBase
         }
 
         place.Name = updatedPlace.Name;
+        place.Address = updatedPlace.Address;
         place.Description = updatedPlace.Description;
         place.Latitude = updatedPlace.Latitude;
         place.Longitude = updatedPlace.Longitude;
 
         await db.SaveChangesAsync(cancellationToken);
-        return Ok(place);
+        return Ok(PlaceResponse.FromPlace(place));
     }
 
     [HttpDelete("{id:guid}")]
